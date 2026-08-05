@@ -3,11 +3,11 @@ package com.trodevel.simpleevent
 import org.json.JSONArray
 import org.json.JSONObject
 
-class ParserCsvStringToEvent(private val separator: String) {
+class CsvDeserializer(private val separator: String) {
 
-    private val legacyParser = LegacyParserCsvStringToEvent(separator)
+    private val legacyParser = LegacyCsvDeserializer(separator)
 
-    fun parse(line: String): EventObject? {
+    fun toObject(line: String): EventObject? {
         val parts = line.split(separator)
         if (parts.isEmpty()) return null
 
@@ -16,7 +16,7 @@ class ParserCsvStringToEvent(private val separator: String) {
             if (firstColInt != null && firstColInt in 0..100) {
                 parseNewFormat(parts)
             } else {
-                legacyParser.parse(parts)
+                legacyParser.toObject(parts)
             }
         } catch (e: Exception) {
             null

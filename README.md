@@ -6,7 +6,7 @@ A library for Android applications to model, convert, and persist notification e
 
 - **Rich Event Modeling**: Supports standard notifications, extended messaging details (people, conversation titles), and removal events.
 - **Notification Conversion**: Effortlessly convert Android `StatusBarNotification` objects into clean, serializable Kotlin data classes.
-- **CSV Serialization**: Built-in converters for transforming events into CSV lines with customizable separators and timestamp formats.
+- **CSV Serialization**: Built-in serializers for transforming events into CSV lines with customizable separators and timestamp formats.
 - **Robust Parsing**: Parse CSV strings back into Event objects, including support for legacy formats.
 - **Messaging Integration**: Extracts deep messaging metadata using `NotificationCompat.MessagingStyle`.
 
@@ -43,19 +43,19 @@ override fun onNotificationPosted(sbn: StatusBarNotification) {
 ### 2. Export Event to CSV
 
 ```kotlin
-import com.trodevel.simpleevent.ConverterEventToCsv
+import com.trodevel.simpleevent.CsvSerializer
 
-val converter = ConverterEventToCsv(mustExportTsAsDateTime = false, separator = ";")
-val csvLine = converter.toString(event)
+val serializer = CsvSerializer(mustExportTsAsDateTime = false, separator = ";")
+val csvLine = serializer.toString(event)
 ```
 
 ### 3. Parse Event from CSV
 
 ```kotlin
-import com.trodevel.simpleevent.ParserCsvStringToEvent
+import com.trodevel.simpleevent.CsvDeserializer
 
-val parser = ParserCsvStringToEvent(separator = ";")
-val eventObject = parser.parse(line) // Returns EventObject?
+val deserializer = CsvDeserializer(separator = ";")
+val eventObject = deserializer.toObject(line) // Returns EventObject?
 ```
 
 ## Data Models
