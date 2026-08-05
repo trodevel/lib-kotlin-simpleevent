@@ -3,7 +3,7 @@ package com.trodevel.simpleevent
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ConverterEventToCsv(
+class CsvSerializer(
     private val mustExportTsAsDateTime: Boolean,
     private val separator: String = ","
 ) {

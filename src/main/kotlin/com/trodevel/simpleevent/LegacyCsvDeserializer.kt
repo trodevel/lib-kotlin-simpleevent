@@ -3,9 +3,9 @@ package com.trodevel.simpleevent
 import org.json.JSONArray
 import org.json.JSONObject
 
-class LegacyParserCsvStringToEvent(private val separator: String) {
+class LegacyCsvDeserializer(private val separator: String) {
 
-    fun parse(parts: List<String>): EventObject? {
+    fun toObject(parts: List<String>): EventObject? {
         if (parts.size < 2) return null
         val secondColInt = parts[1].toIntOrNull()
         return if (secondColInt != null && secondColInt in 1..3) {
