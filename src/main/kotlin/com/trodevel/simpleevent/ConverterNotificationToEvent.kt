@@ -64,12 +64,21 @@ object ConverterNotificationToEvent {
             }
         }
 
-        val base = EventBase(packageName, title, text, sbn.key)
+        val isOneToOne = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            !extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION)
+        } else {
+            true
+        }
+        val channel = initNotificationChannel(sbn)
+        val conversations = initConversations(sbn)
+
+        val base = EventBase(channel, conversations, packageName, title, text, sbn.key)
 
         return if (conversationTitle != null || messagingPerson != null || people.isNotEmpty()) {
             ExtendedEvent(
                 timestamp = timestamp,
                 base = base,
+                isOneToOne = isOneToOne,
                 people = people.distinctBy { it.key ?: it.uri ?: it.name }.filter { it.name != "Unknown" },
                 messagingPerson = if (messagingPerson?.name == "Unknown") null else messagingPerson,
                 conversationTitle = conversationTitle
@@ -77,6 +86,24 @@ object ConverterNotificationToEvent {
         } else {
             StandardEvent(timestamp, base)
         }
+    }
+
+    private fun initNotificationChannel(sbn: StatusBarNotification): NotificationChannel {
+        val channelId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            sbn.notification.channelId ?: ""
+        } else {
+            ""
+        }
+        return NotificationChannel(channelId, 0)
+    }
+
+    private fun initConversations(sbn: StatusBarNotification): Conversations {
+        val conversationId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            sbn.notification.shortcutId ?: ""
+        } else {
+            ""
+        }
+        return Conversations(conversationId, "")
     }
 
     fun toRemoveEvent(sbn: StatusBarNotification): RemoveEvent {

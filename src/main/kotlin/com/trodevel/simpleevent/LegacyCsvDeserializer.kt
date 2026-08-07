@@ -29,6 +29,8 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[2])
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             packageName = unescape(parts[1]),
             title = title,
             message = unescape(parts.subList(3, parts.size).joinToString(separator)),
@@ -42,6 +44,8 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,
             message = unescape(parts[4]),
@@ -55,6 +59,8 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,
             message = unescape(parts[4]),
@@ -71,7 +77,7 @@ class LegacyCsvDeserializer(private val separator: String) {
             Person(messagingPersonStr, null, null, false, false)
         } else null
 
-        return ExtendedEvent(timestamp, base, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
+        return ExtendedEvent(timestamp, base, false, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
     }
 
     private fun parseExtendedEvent(parts: List<String>): ExtendedEvent? {
@@ -79,6 +85,8 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,
             message = unescape(parts[4]),
@@ -90,7 +98,7 @@ class LegacyCsvDeserializer(private val separator: String) {
 
         val people = parsePeopleJson(peopleStr)
         val messagingPerson = parsePersonJson(messagingPersonStr)
-        return ExtendedEvent(timestamp, base, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() } )
+        return ExtendedEvent(timestamp, base, false, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() } )
     }
 
     private fun parsePersonJson(jsonStr: String): Person? {

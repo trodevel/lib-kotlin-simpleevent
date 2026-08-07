@@ -23,7 +23,7 @@ class CsvDeserializer(private val separator: String) {
         }
     }
 
-    private fun parseNewFormat(version: int, parts: List<String>): EventObject? {
+    private fun parseNewFormat(version: Int, parts: List<String>): EventObject? {
         if (parts.size < 4) return null
         val type = parts[1].toIntOrNull() ?: return null
         val timestamp = parts[2].toLongOrNull() ?: return null
@@ -36,15 +36,19 @@ class CsvDeserializer(private val separator: String) {
         }
     }
 
-    private fun parseStandardEvent(version: int, timestamp: Long, parts: List<String>): StandardEvent? {
-        if( version == 1 )
-            return parseStandardEvent_1(timestamp, parts)
-        return null
+    private fun parseStandardEvent(version: Int, timestamp: Long, parts: List<String>): StandardEvent? {
+        return when (version) {
+            1 -> parseStandardEvent_1(timestamp, parts)
+            2 -> parseStandardEvent_2(timestamp, parts)
+            else -> null
+        }
     }
 
     private fun parseStandardEvent_1(timestamp: Long, parts: List<String>): StandardEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             key = unescape(parts[3]),
             packageName = unescape(parts[4]),
             title = unescape(parts[5]),
@@ -53,15 +57,38 @@ class CsvDeserializer(private val separator: String) {
         return StandardEvent(timestamp, base)
     }
 
-    private fun parseExtendedEvent(version: int, timestamp: Long, parts: List<String>): ExtendedEvent? {
-        if( version == 1 )
-            return parseExtendedEvent_1(timestamp, parts)
-        return null
+    private fun parseStandardEvent_2(timestamp: Long, parts: List<String>): StandardEvent? {
+        if (parts.size < 11) return null
+        val base = EventBase(
+            channel = NotificationChannel(
+                channelId = unescape(parts[7]),
+                category = parts[8].toIntOrNull() ?: 0
+            ),
+            conversations = Conversations(
+                conversationId = unescape(parts[9]),
+                parentChannelId = unescape(parts[10])
+            ),
+            key = unescape(parts[3]),
+            packageName = unescape(parts[4]),
+            title = unescape(parts[5]),
+            message = unescape(parts[6])
+        )
+        return StandardEvent(timestamp, base)
+    }
+
+    private fun parseExtendedEvent(version: Int, timestamp: Long, parts: List<String>): ExtendedEvent? {
+        return when (version) {
+            1 -> parseExtendedEvent_1(timestamp, parts)
+            2 -> parseExtendedEvent_2(timestamp, parts)
+            else -> null
+        }
     }
 
     private fun parseExtendedEvent_1(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
+            channel = NotificationChannel("", 0),
+            conversations = Conversations("", ""),
             key = unescape(parts[3]),
             packageName = unescape(parts[4]),
             title = unescape(parts[5]),
@@ -73,11 +100,37 @@ class CsvDeserializer(private val separator: String) {
 
         val people = parsePeopleJson(peopleStr)
         val messagingPerson = parsePersonJson(messagingPersonStr)
-        return ExtendedEvent(timestamp, base, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
+        return ExtendedEvent(timestamp, base, false, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
     }
 
-    private fun parseRemoveEvent(version: int, timestamp: Long, parts: List<String>): RemoveEvent? {
-        if( version == 1 )
+    private fun parseExtendedEvent_2(timestamp: Long, parts: List<String>): ExtendedEvent? {
+        if (parts.size < 11) return null
+        val base = EventBase(
+            channel = NotificationChannel(
+                channelId = unescape(parts[7]),
+                category = parts[8].toIntOrNull() ?: 0
+            ),
+            conversations = Conversations(
+                conversationId = unescape(parts[9]),
+                parentChannelId = unescape(parts[10])
+            ),
+            key = unescape(parts[3]),
+            packageName = unescape(parts[4]),
+            title = unescape(parts[5]),
+            message = unescape(parts[6])
+        )
+        val isOneToOne = parts.getOrNull(11)?.toBoolean() ?: false
+        val peopleStr = if (parts.size > 12) unescape(parts[12]) else ""
+        val messagingPersonStr = if (parts.size > 13) unescape(parts[13]) else ""
+        val conversationTitle = if (parts.size > 14) unescape(parts[14]) else ""
+
+        val people = parsePeopleJson(peopleStr)
+        val messagingPerson = parsePersonJson(messagingPersonStr)
+        return ExtendedEvent(timestamp, base, isOneToOne, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
+    }
+
+    private fun parseRemoveEvent(version: Int, timestamp: Long, parts: List<String>): RemoveEvent? {
+        if (version == 1 || version == 2)
             return parseRemoveEvent_1(timestamp, parts)
         return null
     }
