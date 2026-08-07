@@ -24,7 +24,7 @@ class CsvSerializer(
     }
 
     private fun baseToCsv(base: EventBase): String {
-        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator${base.channel.category}$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\""
+        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator${base.channel.category}$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\""
     }
 
     fun toString(event: EventObject): String {

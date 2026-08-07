@@ -60,18 +60,18 @@ class CsvDeserializer(private val separator: String) {
     private fun parseStandardEvent_2(timestamp: Long, parts: List<String>): StandardEvent? {
         if (parts.size < 11) return null
         val base = EventBase(
+            key = unescape(parts[3]),
             channel = NotificationChannel(
-                channelId = unescape(parts[7]),
-                category = parts[8].toIntOrNull() ?: 0
+                channelId = unescape(parts[4]),
+                category = parts[5].toIntOrNull() ?: 0
             ),
             conversations = Conversations(
-                conversationId = unescape(parts[9]),
-                parentChannelId = unescape(parts[10])
+                conversationId = unescape(parts[6]),
+                parentChannelId = unescape(parts[7])
             ),
-            key = unescape(parts[3]),
-            packageName = unescape(parts[4]),
-            title = unescape(parts[5]),
-            message = unescape(parts[6])
+            packageName = unescape(parts[8]),
+            title = unescape(parts[9]),
+            message = unescape(parts[10])
         )
         return StandardEvent(timestamp, base)
     }
@@ -106,18 +106,18 @@ class CsvDeserializer(private val separator: String) {
     private fun parseExtendedEvent_2(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 11) return null
         val base = EventBase(
+            key = unescape(parts[3]),
             channel = NotificationChannel(
-                channelId = unescape(parts[7]),
-                category = parts[8].toIntOrNull() ?: 0
+                channelId = unescape(parts[4]),
+                category = parts[5].toIntOrNull() ?: 0
             ),
             conversations = Conversations(
-                conversationId = unescape(parts[9]),
-                parentChannelId = unescape(parts[10])
+                conversationId = unescape(parts[6]),
+                parentChannelId = unescape(parts[7])
             ),
-            key = unescape(parts[3]),
-            packageName = unescape(parts[4]),
-            title = unescape(parts[5]),
-            message = unescape(parts[6])
+            packageName = unescape(parts[8]),
+            title = unescape(parts[9]),
+            message = unescape(parts[10])
         )
         val isOneToOne = parts.getOrNull(11)?.toBoolean() ?: false
         val peopleStr = if (parts.size > 12) unescape(parts[12]) else ""
@@ -130,7 +130,7 @@ class CsvDeserializer(private val separator: String) {
     }
 
     private fun parseRemoveEvent(version: Int, timestamp: Long, parts: List<String>): RemoveEvent? {
-        if (version == 1 || version == 2)
+        if (version == 1)
             return parseRemoveEvent_1(timestamp, parts)
         return null
     }
