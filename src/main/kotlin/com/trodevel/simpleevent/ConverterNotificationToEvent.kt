@@ -94,7 +94,9 @@ object ConverterNotificationToEvent {
         } else {
             ""
         }
-        return NotificationChannel(channelId, 0)
+        val categoryString = sbn.notification.category
+        val category = CategoryConverter.fromString(categoryString)
+        return NotificationChannel(channelId, category)
     }
 
     private fun initConversations(sbn: StatusBarNotification): Conversations {

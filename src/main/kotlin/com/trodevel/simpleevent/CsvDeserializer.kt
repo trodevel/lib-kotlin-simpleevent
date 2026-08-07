@@ -47,7 +47,7 @@ class CsvDeserializer(private val separator: String) {
     private fun parseStandardEvent_1(timestamp: Long, parts: List<String>): StandardEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             key = unescape(parts[3]),
             packageName = unescape(parts[4]),
@@ -63,7 +63,7 @@ class CsvDeserializer(private val separator: String) {
             key = unescape(parts[3]),
             channel = NotificationChannel(
                 channelId = unescape(parts[4]),
-                category = parts[5].toIntOrNull() ?: 0
+                category = try { Category.valueOf(unescape(parts[5])) } catch (e: Exception) { Category.OTHER }
             ),
             conversations = Conversations(
                 conversationId = unescape(parts[6]),
@@ -87,7 +87,7 @@ class CsvDeserializer(private val separator: String) {
     private fun parseExtendedEvent_1(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             key = unescape(parts[3]),
             packageName = unescape(parts[4]),
@@ -109,7 +109,7 @@ class CsvDeserializer(private val separator: String) {
             key = unescape(parts[3]),
             channel = NotificationChannel(
                 channelId = unescape(parts[4]),
-                category = parts[5].toIntOrNull() ?: 0
+                category = try { Category.valueOf(unescape(parts[5])) } catch (e: Exception) { Category.OTHER }
             ),
             conversations = Conversations(
                 conversationId = unescape(parts[6]),

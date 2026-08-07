@@ -29,7 +29,7 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[2])
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             packageName = unescape(parts[1]),
             title = title,
@@ -44,7 +44,7 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,
@@ -59,7 +59,7 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,
@@ -85,7 +85,7 @@ class LegacyCsvDeserializer(private val separator: String) {
         val timestamp = parts[0].toLongOrNull() ?: return null
         val title = unescape(parts[3])
         val base = EventBase(
-            channel = NotificationChannel("", 0),
+            channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             packageName = unescape(parts[2]),
             title = title,

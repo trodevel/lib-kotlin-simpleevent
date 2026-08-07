@@ -2,7 +2,7 @@ package com.trodevel.simpleevent
 
 data class NotificationChannel(
     val channelId: String,
-    val category: Int,
+    val category: Category,
 )
 
 data class Conversations(
