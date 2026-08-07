@@ -12,9 +12,9 @@ class CsvDeserializer(private val separator: String) {
         if (parts.isEmpty()) return null
 
         return try {
-            val firstColInt = parts[0].toIntOrNull()
-            if (firstColInt != null && firstColInt in 0..100) {
-                parseNewFormat(parts)
+            val version = parts[0].toIntOrNull()
+            if (version != null && version in 0..100) {
+                parseNewFormat(version, parts)
             } else {
                 legacyParser.toObject(parts)
             }
@@ -23,20 +23,26 @@ class CsvDeserializer(private val separator: String) {
         }
     }
 
-    private fun parseNewFormat(parts: List<String>): EventObject? {
+    private fun parseNewFormat(version: int, parts: List<String>): EventObject? {
         if (parts.size < 4) return null
         val type = parts[1].toIntOrNull() ?: return null
         val timestamp = parts[2].toLongOrNull() ?: return null
 
         return when (type) {
-            1 -> parseStandardEventNew(timestamp, parts)
-            2 -> parseExtendedEventNew(timestamp, parts)
-            3 -> parseRemoveEventNew(timestamp, parts)
+            1 -> parseStandardEventNew(version, timestamp, parts)
+            2 -> parseExtendedEventNew(version, timestamp, parts)
+            3 -> parseRemoveEventNew(version, timestamp, parts)
             else -> null
         }
     }
 
-    private fun parseStandardEventNew(timestamp: Long, parts: List<String>): StandardEvent? {
+    private fun parseStandardEventNew(version: int, timestamp: Long, parts: List<String>): StandardEvent? {
+        if( version == 1 )
+            return parseStandardEventNew_1(timestamp, parts)
+        return null
+    }
+
+    private fun parseStandardEventNew_1(timestamp: Long, parts: List<String>): StandardEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
             key = unescape(parts[3]),
@@ -47,7 +53,13 @@ class CsvDeserializer(private val separator: String) {
         return StandardEvent(timestamp, base)
     }
 
-    private fun parseExtendedEventNew(timestamp: Long, parts: List<String>): ExtendedEvent? {
+    private fun parseExtendedEventNew(version: int, timestamp: Long, parts: List<String>): ExtendedEvent? {
+        if( version == 1 )
+            return parseExtendedEventNew_1(timestamp, parts)
+        return null
+    }
+
+    private fun parseExtendedEventNew_1(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 7) return null
         val base = EventBase(
             key = unescape(parts[3]),
@@ -64,7 +76,13 @@ class CsvDeserializer(private val separator: String) {
         return ExtendedEvent(timestamp, base, people, messagingPerson, conversationTitle.takeIf { it.isNotEmpty() })
     }
 
-    private fun parseRemoveEventNew(timestamp: Long, parts: List<String>): RemoveEvent? {
+    private fun parseRemoveEventNew(version: int, timestamp: Long, parts: List<String>): RemoveEvent? {
+        if( version == 1 )
+            return parseRemoveEventNew_1(timestamp, parts)
+        return null
+    }
+
+    private fun parseRemoveEventNew_1(timestamp: Long, parts: List<String>): RemoveEvent? {
         if (parts.size < 4) return null
         return RemoveEvent(timestamp, unescape(parts[3]))
     }
