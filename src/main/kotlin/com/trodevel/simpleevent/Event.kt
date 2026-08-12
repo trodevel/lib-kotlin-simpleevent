@@ -1,16 +1,16 @@
 package com.trodevel.simpleevent
 
-sealed class EventObject {
+sealed class Event {
     abstract val timestamp: Long
 }
 
 data class RemoveEvent(
     override val timestamp: Long,
     val key: String
-) : EventObject()
+) : Event()
 
-sealed class Event : EventObject() {
-    abstract val base: EventBase
+sealed class EventBase : Event() {
+    abstract val base: DataEventBase
     abstract override val timestamp: Long
     val packageName: String get() = base.packageName
     val title: String get() = base.title
@@ -18,16 +18,16 @@ sealed class Event : EventObject() {
     val key: String get() = base.key
 }
 
-data class StandardEvent(
+data class SimpleEvent(
     override val timestamp: Long,
-    override val base: EventBase
-) : Event()
+    override val base: DataEventBase
+) : EventBase()
 
 data class ExtendedEvent(
     override val timestamp: Long,
-    override val base: EventBase,
+    override val base: DataEventBase,
     val isOneToOne: Boolean,
     val people: List<Person>,
     val messagingPerson: Person?,
     val conversationTitle: String?
-) : Event()
+) : EventBase()

@@ -7,7 +7,7 @@ class CsvDeserializer(private val separator: String) {
 
     private val legacyParser = LegacyCsvDeserializer(separator)
 
-    fun toObject(line: String): EventObject? {
+    fun toObject(line: String): Event? {
         val parts = line.split(separator)
         if (parts.isEmpty()) return null
 
@@ -23,30 +23,30 @@ class CsvDeserializer(private val separator: String) {
         }
     }
 
-    private fun parseNewFormat(version: Int, parts: List<String>): EventObject? {
+    private fun parseNewFormat(version: Int, parts: List<String>): Event? {
         if (parts.size < 4) return null
         val type = parts[1].toIntOrNull() ?: return null
         val timestamp = parts[2].toLongOrNull() ?: return null
 
         return when (type) {
-            1 -> parseStandardEvent(version, timestamp, parts)
+            1 -> parseSimpleEvent(version, timestamp, parts)
             2 -> parseExtendedEvent(version, timestamp, parts)
             3 -> parseRemoveEvent(version, timestamp, parts)
             else -> null
         }
     }
 
-    private fun parseStandardEvent(version: Int, timestamp: Long, parts: List<String>): StandardEvent? {
+    private fun parseSimpleEvent(version: Int, timestamp: Long, parts: List<String>): SimpleEvent? {
         return when (version) {
-            1 -> parseStandardEvent_1(timestamp, parts)
-            2 -> parseStandardEvent_2(timestamp, parts)
+            1 -> parseSimpleEvent_1(timestamp, parts)
+            2 -> parseSimpleEvent_2(timestamp, parts)
             else -> null
         }
     }
 
-    private fun parseStandardEvent_1(timestamp: Long, parts: List<String>): StandardEvent? {
+    private fun parseSimpleEvent_1(timestamp: Long, parts: List<String>): SimpleEvent? {
         if (parts.size < 7) return null
-        val base = EventBase(
+        val base = DataEventBase(
             channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             key = unescape(parts[3]),
@@ -54,12 +54,12 @@ class CsvDeserializer(private val separator: String) {
             title = unescape(parts[5]),
             message = unescape(parts[6])
         )
-        return StandardEvent(timestamp, base)
+        return SimpleEvent(timestamp, base)
     }
 
-    private fun parseStandardEvent_2(timestamp: Long, parts: List<String>): StandardEvent? {
+    private fun parseSimpleEvent_2(timestamp: Long, parts: List<String>): SimpleEvent? {
         if (parts.size < 11) return null
-        val base = EventBase(
+        val base = DataEventBase(
             key = unescape(parts[3]),
             channel = NotificationChannel(
                 channelId = unescape(parts[4]),
@@ -73,7 +73,7 @@ class CsvDeserializer(private val separator: String) {
             title = unescape(parts[9]),
             message = unescape(parts[10])
         )
-        return StandardEvent(timestamp, base)
+        return SimpleEvent(timestamp, base)
     }
 
     private fun parseExtendedEvent(version: Int, timestamp: Long, parts: List<String>): ExtendedEvent? {
@@ -86,7 +86,7 @@ class CsvDeserializer(private val separator: String) {
 
     private fun parseExtendedEvent_1(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 7) return null
-        val base = EventBase(
+        val base = DataEventBase(
             channel = NotificationChannel("", Category.OTHER),
             conversations = Conversations("", ""),
             key = unescape(parts[3]),
@@ -105,7 +105,7 @@ class CsvDeserializer(private val separator: String) {
 
     private fun parseExtendedEvent_2(timestamp: Long, parts: List<String>): ExtendedEvent? {
         if (parts.size < 11) return null
-        val base = EventBase(
+        val base = DataEventBase(
             key = unescape(parts[3]),
             channel = NotificationChannel(
                 channelId = unescape(parts[4]),

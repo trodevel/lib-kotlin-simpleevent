@@ -23,21 +23,21 @@ class CsvSerializer(
         return "$timestamp"
     }
 
-    private fun baseToCsv(base: EventBase): String {
+    private fun baseToCsv(base: DataEventBase): String {
         return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator\"${base.channel.category.name}\"$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\""
     }
 
-    fun toString(event: EventObject): String {
+    fun toString(event: Event): String {
         val timestamp = dateToString(event.timestamp)
 
         return when (event) {
-            is StandardEvent -> standardEventToCsv(timestamp, baseToCsv(event.base))
+            is SimpleEvent -> simpleEventToCsv(timestamp, baseToCsv(event.base))
             is ExtendedEvent -> extendedEventToCsv(timestamp, baseToCsv(event.base), event)
             is RemoveEvent -> removeEventToCsv(timestamp, event.key)
         }
     }
 
-    private fun standardEventToCsv(timestamp: String, basePart: String): String {
+    private fun simpleEventToCsv(timestamp: String, basePart: String): String {
         return "2${separator}1${separator}${timestamp}${separator}${basePart}\n"
     }
 

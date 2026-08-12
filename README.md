@@ -36,7 +36,7 @@ import com.trodevel.simpleevent.ConverterNotificationToEvent
 
 override fun onNotificationPosted(sbn: StatusBarNotification) {
     val event = ConverterNotificationToEvent.convert(sbn)
-    // event is either a StandardEvent or ExtendedEvent (for messages)
+    // event is either a SimpleEvent or ExtendedEvent (for messages)
 }
 ```
 
@@ -55,20 +55,20 @@ val csvLine = serializer.toString(event)
 import com.trodevel.simpleevent.CsvDeserializer
 
 val deserializer = CsvDeserializer(separator = ";")
-val eventObject = deserializer.toObject(line) // Returns EventObject?
+val event = deserializer.toObject(line) // Returns Event?
 ```
 
 ## Data Models
 
 ### Event Hierarchy
-- `EventObject`: Abstract base with a `timestamp`.
+- `Event`: Abstract base with a `timestamp`.
     - `RemoveEvent`: Represents a notification removal.
-    - `Event`: Base for active notifications.
-        - `StandardEvent`: Basic notification (package, title, message).
+    - `EventBase`: Base for active notifications.
+        - `SimpleEvent`: Basic notification (package, title, message).
         - `ExtendedEvent`: Detailed messaging info (list of `Person`, conversation title, etc.).
 
 ### Key Components
-- `EventBase`: Contains core metadata (package name, title, message, and notification key).
+- `DataEventBase`: Contains core metadata (package name, title, message, and notification key).
 - `Person`: Represents a participant in a conversation (name, uri, bot status, importance).
 
 ## License
