@@ -26,6 +26,7 @@ data class StandardEvent(
 data class ExtendedEvent(
     override val timestamp: Long,
     override val base: EventBase,
+    val isOneToOne: Boolean,
     val people: List<Person>,
     val messagingPerson: Person?,
     val conversationTitle: String?
