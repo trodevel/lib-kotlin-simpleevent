@@ -16,6 +16,12 @@ enum class Category {
     RECOMMENDATION,
     STATUS,
     REMINDER,
+    LOCATION_SHARING,
+    MISSED_CALL,
+    NAVIGATION,
+    STOPWATCH,
+    VOICEMAIL,
+    WORKOUT,
     OTHER;
 
     fun getIcon(): String {
@@ -35,6 +41,12 @@ enum class Category {
             RECOMMENDATION -> "💡"
             STATUS -> "ℹ️"
             REMINDER -> "🔔"
+            LOCATION_SHARING -> "📍"
+            MISSED_CALL -> "📵"
+            NAVIGATION -> "🧭"
+            STOPWATCH -> "⏱️"
+            VOICEMAIL -> "📼"
+            WORKOUT -> "🏃"
             OTHER -> "📁"
         }
     }
