@@ -1,6 +1,6 @@
 package com.trodevel.simpleevent
 
-data class EventBase(
+data class DataEventBase(
     val channel: NotificationChannel,
     val conversations: Conversations,
     val packageName: String,

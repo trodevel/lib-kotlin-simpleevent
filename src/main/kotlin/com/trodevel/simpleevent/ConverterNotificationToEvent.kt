@@ -9,7 +9,7 @@ import android.app.Person as AndroidPerson
 import androidx.core.app.Person as CompatPerson
 
 object ConverterNotificationToEvent {
-    fun convert(sbn: StatusBarNotification): Event {
+    fun convert(sbn: StatusBarNotification): EventBase {
         val packageName = sbn.packageName
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: "No Title"
@@ -72,7 +72,7 @@ object ConverterNotificationToEvent {
         val channel = initNotificationChannel(sbn)
         val conversations = initConversations(sbn)
 
-        val base = EventBase(channel, conversations, packageName, title, text, sbn.key)
+        val base = DataEventBase(channel, conversations, packageName, title, text, sbn.key)
 
         return if (conversationTitle != null || messagingPerson != null || people.isNotEmpty()) {
             ExtendedEvent(
@@ -84,7 +84,7 @@ object ConverterNotificationToEvent {
                 conversationTitle = conversationTitle
             )
         } else {
-            StandardEvent(timestamp, base)
+            SimpleEvent(timestamp, base)
         }
     }
 
