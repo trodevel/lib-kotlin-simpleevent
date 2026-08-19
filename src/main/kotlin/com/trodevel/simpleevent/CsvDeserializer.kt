@@ -162,7 +162,8 @@ class CsvDeserializer(private val separator: String) {
     }
 
     private fun parseCategoryExt_3(categoryPart: String, categoryStrPart: String): CategoryExt {
-        val category = try { Category.valueOf(unescape(categoryPart)) } catch (e: Exception) { Category.OTHER }
+        val categoryId = categoryPart.toIntOrNull() ?: 100
+        val category = Category.fromInt(categoryId)
         return CategoryExt(category, unescape(categoryStrPart))
     }
 

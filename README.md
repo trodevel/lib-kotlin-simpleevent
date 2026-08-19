@@ -9,6 +9,7 @@ A library for Android applications to model, convert, and persist notification e
 - **CSV Serialization**: Built-in serializers for transforming events into CSV lines with customizable separators and timestamp formats.
 - **Robust Parsing**: Parse CSV strings back into Event objects, including support for legacy formats.
 - **Messaging Integration**: Extracts deep messaging metadata using `NotificationCompat.MessagingStyle`.
+- **Category Extension**: Captures original Android notification categories and maps them to a structured `Category` enum, while preserving the original category name for non-standard values via `CategoryExt`.
 
 ## Integration
 
@@ -57,6 +58,29 @@ import com.trodevel.simpleevent.CsvDeserializer
 val deserializer = CsvDeserializer(separator = ";")
 val event = deserializer.toObject(line) // Returns Event?
 ```
+
+## CSV Format (Version 3)
+
+The library uses a versioned CSV format. Version 3 introduced integer-based category mapping and expanded category tracking:
+
+1. **VERSION**: 3
+2. **TYPE**: 1 (Simple), 2 (Extended), 3 (Remove)
+3. **Timestamp**: Long or Date/Time
+4. **Key**: Notification key
+5. **channelId**: Android notification channel ID
+6. **category**: Integer ID representing the `Category` enum
+7. **categoryStr**: Original Android category string (populated if `category` is `OTHER`)
+8. **conversationId**: Shortcut ID
+9. **parentChannelId**: Parent channel ID
+10. **packageName**: Source package
+11. **Title**: Notification title
+12. **Message**: Notification content
+
+Extended events (Type 2) append:
+13. **isOneToOne**: Boolean
+14. **people**: JSON array of participants
+15. **messaging_person**: JSON object of the sender
+16. **conversation_title**: Optional conversation name
 
 ## Data Models
 

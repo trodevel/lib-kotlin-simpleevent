@@ -24,7 +24,7 @@ class CsvSerializer(
     }
 
     private fun categoryExtToCsv(category: CategoryExt): String {
-        return "\"${category.category.name}\"$separator\"${sanitize(category.categoryStr)}\""
+        return "${category.category.id}$separator\"${sanitize(category.categoryStr)}\""
     }
 
     private fun baseToCsv(base: DataEventBase): String {
