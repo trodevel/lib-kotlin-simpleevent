@@ -4,6 +4,7 @@ import android.app.Notification
 
 object CategoryConverter {
     fun fromString(category: String?): Category {
+        if (category.isNullOrEmpty()) return Category.NONE
         return when (category) {
             Notification.CATEGORY_CALL -> Category.CALL
             Notification.CATEGORY_MESSAGE -> Category.MESSAGE

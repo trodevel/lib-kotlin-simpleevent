@@ -95,8 +95,14 @@ object ConverterNotificationToEvent {
             ""
         }
         val categoryString = sbn.notification.category
-        val category = CategoryConverter.fromString(categoryString)
-        return NotificationChannel(channelId, category)
+        val categoryExt = initCategoryExt(categoryString)
+        return NotificationChannel(channelId, categoryExt)
+    }
+
+    private fun initCategoryExt(categoryStr: String?): CategoryExt {
+        val category = CategoryConverter.fromString(categoryStr)
+        val finalCategoryStr = if (category == Category.OTHER) categoryStr ?: "" else ""
+        return CategoryExt(category, finalCategoryStr)
     }
 
     private fun initConversations(sbn: StatusBarNotification): Conversations {
