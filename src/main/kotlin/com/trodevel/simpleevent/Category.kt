@@ -1,6 +1,7 @@
 package com.trodevel.simpleevent
 
 enum class Category {
+    NONE,
     CALL,
     MESSAGE,
     EMAIL,
@@ -26,6 +27,7 @@ enum class Category {
 
     fun getIcon(): String {
         return when (this) {
+            NONE -> ""
             CALL -> "📞"
             MESSAGE -> "💬"
             EMAIL -> "📧"

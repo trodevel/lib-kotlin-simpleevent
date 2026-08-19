@@ -23,8 +23,12 @@ class CsvSerializer(
         return "$timestamp"
     }
 
+    private fun categoryExtToCsv(category: CategoryExt): String {
+        return "\"${category.category.name}\"$separator\"${sanitize(category.categoryStr)}\""
+    }
+
     private fun baseToCsv(base: DataEventBase): String {
-        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator\"${base.channel.category.name}\"$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\""
+        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator${categoryExtToCsv(base.channel.category)}$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\""
     }
 
     fun toString(event: Event): String {
@@ -38,14 +42,14 @@ class CsvSerializer(
     }
 
     private fun simpleEventToCsv(timestamp: String, basePart: String): String {
-        return "2${separator}1${separator}${timestamp}${separator}${basePart}\n"
+        return "3${separator}1${separator}${timestamp}${separator}${basePart}\n"
     }
 
     private fun extendedEventToCsv(timestamp: String, basePart: String, event: ExtendedEvent): String {
         val peopleJson = personListToJson(event.people)
         val messagingPersonJson = event.messagingPerson?.let { personToJson(it).toString() } ?: ""
         val extendedPart = "${event.isOneToOne}$separator\"${sanitize(peopleJson)}\"$separator\"${sanitize(messagingPersonJson)}\"$separator\"${sanitize(event.conversationTitle ?: "")}\""
-        return "2${separator}2${separator}${timestamp}${separator}${basePart}${separator}${extendedPart}\n"
+        return "3${separator}2${separator}${timestamp}${separator}${basePart}${separator}${extendedPart}\n"
     }
 
     private fun removeEventToCsv(timestamp: String, key: String): String {
