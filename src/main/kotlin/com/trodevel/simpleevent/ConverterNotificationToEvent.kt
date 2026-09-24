@@ -24,10 +24,20 @@ object ConverterNotificationToEvent {
         val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(sbn.notification)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val androidPerson = extras.getParcelable<AndroidPerson>(Notification.EXTRA_MESSAGING_PERSON)
+            val androidPerson = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, AndroidPerson::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelable<AndroidPerson>(Notification.EXTRA_MESSAGING_PERSON)
+            }
             androidPerson?.let { messagingPerson = it.toAppPerson() }
 
-            val list = extras.getParcelableArrayList<AndroidPerson>(Notification.EXTRA_PEOPLE_LIST)
+            val list = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                extras.getParcelableArrayList(Notification.EXTRA_PEOPLE_LIST, AndroidPerson::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                extras.getParcelableArrayList<AndroidPerson>(Notification.EXTRA_PEOPLE_LIST)
+            }
             list?.forEach { p ->
                 val converted = p.toAppPerson()
                 if (converted.name != "Unknown") {
@@ -38,8 +48,10 @@ object ConverterNotificationToEvent {
 
         // Fallback/Augment: Try MessagingStyle messages for names and participants
         messagingStyle?.messages?.forEach { msg ->
+            @Suppress("DEPRECATION")
+            val senderName = msg.sender?.toString() ?: "Unknown"
             val p = msg.person?.toAppPerson() ?: Person(
-                name = msg.sender?.toString() ?: "Unknown",
+                name = senderName,
                 key = null,
                 uri = null,
                 isBot = false,
@@ -54,8 +66,10 @@ object ConverterNotificationToEvent {
         if (messagingPerson == null && messagingStyle != null) {
             val lastMsg = messagingStyle.messages.lastOrNull()
             if (lastMsg != null) {
+                @Suppress("DEPRECATION")
+                val senderName = lastMsg.sender?.toString() ?: "Unknown"
                 messagingPerson = lastMsg.person?.toAppPerson() ?: Person(
-                    name = lastMsg.sender?.toString() ?: "Unknown",
+                    name = senderName,
                     key = null,
                     uri = null,
                     isBot = false,
