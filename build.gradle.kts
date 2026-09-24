@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.trodevel.simpleevent"
-version = "4.0.0"
+version = "4.1.0"
 
 android {
     namespace = "com.trodevel.simpleevent"
