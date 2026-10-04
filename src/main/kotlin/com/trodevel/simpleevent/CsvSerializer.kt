@@ -12,7 +12,7 @@ class CsvSerializer(
 
     fun toCsvHeader(): String {
         val timestampHeader = if (mustExportTsAsDateTime) "DATE${separator}TIME" else "Timestamp"
-        return "VERSION${separator}TYPE${separator}$timestampHeader${separator}Key${separator}packageName${separator}Title${separator}Message${separator}channelId${separator}category${separator}conversationId${separator}parentChannelId${separator}isOneToOne${separator}people${separator}messaging_person${separator}conversation_title\n"
+        return "VERSION${separator}TYPE${separator}$timestampHeader${separator}Key${separator}packageName${separator}Title${separator}Message${separator}channelId${separator}category${separator}conversationId${separator}parentChannelId${separator}isHistorical${separator}isOneToOne${separator}people${separator}messaging_person${separator}conversation_title\n"
     }
 
     private fun dateToString(timestamp: Long): String {
@@ -28,7 +28,8 @@ class CsvSerializer(
     }
 
     private fun baseToCsv(base: DataEventBase): String {
-        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator${categoryExtToCsv(base.channel.category)}$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\""
+        val isHistoricalInt = if (base.isHistorical) 1 else 0
+        return "\"${sanitize(base.key)}\"$separator\"${sanitize(base.channel.channelId)}\"$separator${categoryExtToCsv(base.channel.category)}$separator\"${sanitize(base.conversations.conversationId)}\"$separator\"${sanitize(base.conversations.parentChannelId)}\"$separator\"${sanitize(base.packageName)}\"$separator\"${sanitize(base.title)}\"$separator\"${sanitize(base.message)}\"$separator$isHistoricalInt"
     }
 
     fun toString(event: Event): String {
@@ -42,14 +43,14 @@ class CsvSerializer(
     }
 
     private fun simpleEventToCsv(timestamp: String, basePart: String): String {
-        return "3${separator}1${separator}${timestamp}${separator}${basePart}\n"
+        return "4${separator}1${separator}${timestamp}${separator}${basePart}\n"
     }
 
     private fun extendedEventToCsv(timestamp: String, basePart: String, event: ExtendedEvent): String {
         val peopleJson = personListToJson(event.people)
         val messagingPersonJson = event.messagingPerson?.let { personToJson(it).toString() } ?: ""
         val extendedPart = "${event.isOneToOne}$separator\"${sanitize(peopleJson)}\"$separator\"${sanitize(messagingPersonJson)}\"$separator\"${sanitize(event.conversationTitle ?: "")}\""
-        return "3${separator}2${separator}${timestamp}${separator}${basePart}${separator}${extendedPart}\n"
+        return "4${separator}2${separator}${timestamp}${separator}${basePart}${separator}${extendedPart}\n"
     }
 
     private fun removeEventToCsv(timestamp: String, key: String): String {

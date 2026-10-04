@@ -4,11 +4,11 @@ A library for Android applications to model, convert, and persist notification e
 
 ## Features
 
-- **Rich Event Modeling**: Supports standard notifications, extended messaging details (people, conversation titles), and removal events.
-- **Notification Conversion**: Effortlessly convert Android `StatusBarNotification` objects into clean, serializable Kotlin data classes.
+- **Rich Event Modeling**: Supports standard notifications, extended messaging details (people, conversation titles), historical messages (`isHistorical` flag), and removal events.
+- **Notification Conversion**: Effortlessly convert Android `StatusBarNotification` objects into clean, serializable Kotlin data classes, extracting both historical and active messages.
 - **CSV Serialization**: Built-in serializers for transforming events into CSV lines with customizable separators and timestamp formats.
 - **Robust Parsing**: Parse CSV strings back into Event objects, including support for legacy formats.
-- **Messaging Integration**: Extracts deep messaging metadata using `NotificationCompat.MessagingStyle`.
+- **Messaging Integration**: Extracts deep messaging metadata and historical messages using `NotificationCompat.MessagingStyle`.
 - **Category Extension**: Captures original Android notification categories and maps them to a structured `Category` enum, while preserving the original category name for non-standard values via `CategoryExt`.
 
 ## Integration
@@ -36,8 +36,10 @@ dependencies {
 import com.trodevel.simpleevent.ConverterNotificationToEvent
 
 override fun onNotificationPosted(sbn: StatusBarNotification) {
-    val event = ConverterNotificationToEvent.convert(sbn)
-    // event is either a SimpleEvent or ExtendedEvent (for messages)
+    val events = ConverterNotificationToEvent.convert(sbn)
+    for (event in events) {
+        // event is either a SimpleEvent or ExtendedEvent (for messages)
+    }
 }
 ```
 
@@ -59,11 +61,11 @@ val deserializer = CsvDeserializer(separator = ";")
 val event = deserializer.toObject(line) // Returns Event?
 ```
 
-## CSV Format (Version 3)
+## CSV Format (Version 4)
 
-The library uses a versioned CSV format. Version 3 introduced integer-based category mapping and expanded category tracking:
+The library uses a versioned CSV format. Version 4 introduced an integer flag (`isHistorical`) to distinguish historical messages from active notification events:
 
-1. **VERSION**: 3
+1. **VERSION**: 4
 2. **TYPE**: 1 (Simple), 2 (Extended), 3 (Remove)
 3. **Timestamp**: Long or Date/Time
 4. **Key**: Notification key
@@ -75,12 +77,13 @@ The library uses a versioned CSV format. Version 3 introduced integer-based cate
 10. **packageName**: Source package
 11. **Title**: Notification title
 12. **Message**: Notification content
+13. **isHistorical**: Integer flag (`1` for historical message, `0` for active event)
 
 Extended events (Type 2) append:
-13. **isOneToOne**: Boolean
-14. **people**: JSON array of participants
-15. **messaging_person**: JSON object of the sender
-16. **conversation_title**: Optional conversation name
+14. **isOneToOne**: Boolean
+15. **people**: JSON array of participants
+16. **messaging_person**: JSON object of the sender
+17. **conversation_title**: Optional conversation name
 
 ## Data Models
 
@@ -92,7 +95,7 @@ Extended events (Type 2) append:
         - `ExtendedEvent`: Detailed messaging info (list of `Person`, conversation title, etc.).
 
 ### Key Components
-- `DataEventBase`: Contains core metadata (package name, title, message, and notification key).
+- `DataEventBase`: Contains core metadata (package name, title, message, notification key, and `isHistorical` flag).
 - `Person`: Represents a participant in a conversation (name, uri, bot status, importance).
 
 ## License

@@ -9,12 +9,42 @@ import android.app.Person as AndroidPerson
 import androidx.core.app.Person as CompatPerson
 
 object ConverterNotificationToEvent {
-    fun convert(sbn: StatusBarNotification): EventBase {
+    fun convert(sbn: StatusBarNotification): Array<EventBase> {
+        val events = mutableListOf<EventBase>()
+        val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(sbn.notification)
+
+        val historicMessages = messagingStyle?.historicMessages
+        if (!historicMessages.isNullOrEmpty()) {
+            for (msg in historicMessages) {
+                events.add(convert_one(sbn, isHistorical = true, historicMsg = msg))
+            }
+        }
+
+        events.add(convert_one(sbn, isHistorical = false, historicMsg = null))
+
+        return events.toTypedArray()
+    }
+
+    private fun convert_one(
+        sbn: StatusBarNotification,
+        isHistorical: Boolean,
+        historicMsg: NotificationCompat.MessagingStyle.Message? = null
+    ): EventBase {
         val packageName = sbn.packageName
         val extras = sbn.notification.extras
         val title = extras.getString(Notification.EXTRA_TITLE) ?: "No Title"
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "No Content"
-        val timestamp = System.currentTimeMillis()
+
+        val text = if (historicMsg != null && historicMsg.text != null) {
+            historicMsg.text.toString()
+        } else {
+            extras.getCharSequence(Notification.EXTRA_TEXT)?.toString() ?: "No Content"
+        }
+
+        val timestamp = if (historicMsg != null && historicMsg.timestamp > 0) {
+            historicMsg.timestamp
+        } else {
+            System.currentTimeMillis()
+        }
 
         val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
         var messagingPerson: Person? = null
@@ -23,58 +53,73 @@ object ConverterNotificationToEvent {
         // Try to get more detailed messaging information using NotificationCompat
         val messagingStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(sbn.notification)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val androidPerson = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, AndroidPerson::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                extras.getParcelable<AndroidPerson>(Notification.EXTRA_MESSAGING_PERSON)
-            }
-            androidPerson?.let { messagingPerson = it.toAppPerson() }
-
-            val list = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                extras.getParcelableArrayList(Notification.EXTRA_PEOPLE_LIST, AndroidPerson::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                extras.getParcelableArrayList<AndroidPerson>(Notification.EXTRA_PEOPLE_LIST)
-            }
-            list?.forEach { p ->
-                val converted = p.toAppPerson()
-                if (converted.name != "Unknown") {
-                    people.add(converted)
-                }
-            }
-        }
-
-        // Fallback/Augment: Try MessagingStyle messages for names and participants
-        messagingStyle?.messages?.forEach { msg ->
+        if (historicMsg != null) {
             @Suppress("DEPRECATION")
-            val senderName = msg.sender?.toString() ?: "Unknown"
-            val p = msg.person?.toAppPerson() ?: Person(
+            val senderName = historicMsg.sender?.toString() ?: "Unknown"
+            messagingPerson = historicMsg.person?.toAppPerson() ?: Person(
                 name = senderName,
                 key = null,
                 uri = null,
                 isBot = false,
                 isImportant = false
             )
-            if (p.name != "Unknown") {
-                people.add(p)
+            if (messagingPerson.name != "Unknown") {
+                people.add(messagingPerson)
             }
-        }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val androidPerson = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    extras.getParcelable(Notification.EXTRA_MESSAGING_PERSON, AndroidPerson::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    extras.getParcelable<AndroidPerson>(Notification.EXTRA_MESSAGING_PERSON)
+                }
+                androidPerson?.let { messagingPerson = it.toAppPerson() }
 
-        // Fallback for messagingPerson if still null
-        if (messagingPerson == null && messagingStyle != null) {
-            val lastMsg = messagingStyle.messages.lastOrNull()
-            if (lastMsg != null) {
+                val list = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    extras.getParcelableArrayList(Notification.EXTRA_PEOPLE_LIST, AndroidPerson::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    extras.getParcelableArrayList<AndroidPerson>(Notification.EXTRA_PEOPLE_LIST)
+                }
+                list?.forEach { p ->
+                    val converted = p.toAppPerson()
+                    if (converted.name != "Unknown") {
+                        people.add(converted)
+                    }
+                }
+            }
+
+            // Fallback/Augment: Try MessagingStyle messages for names and participants
+            messagingStyle?.messages?.forEach { msg ->
                 @Suppress("DEPRECATION")
-                val senderName = lastMsg.sender?.toString() ?: "Unknown"
-                messagingPerson = lastMsg.person?.toAppPerson() ?: Person(
+                val senderName = msg.sender?.toString() ?: "Unknown"
+                val p = msg.person?.toAppPerson() ?: Person(
                     name = senderName,
                     key = null,
                     uri = null,
                     isBot = false,
                     isImportant = false
                 )
+                if (p.name != "Unknown") {
+                    people.add(p)
+                }
+            }
+
+            // Fallback for messagingPerson if still null
+            if (messagingPerson == null && messagingStyle != null) {
+                val lastMsg = messagingStyle.messages.lastOrNull()
+                if (lastMsg != null) {
+                    @Suppress("DEPRECATION")
+                    val senderName = lastMsg.sender?.toString() ?: "Unknown"
+                    messagingPerson = lastMsg.person?.toAppPerson() ?: Person(
+                        name = senderName,
+                        key = null,
+                        uri = null,
+                        isBot = false,
+                        isImportant = false
+                    )
+                }
             }
         }
 
@@ -86,7 +131,7 @@ object ConverterNotificationToEvent {
         val channel = initNotificationChannel(sbn)
         val conversations = initConversations(sbn)
 
-        val base = DataEventBase(channel, conversations, packageName, title, text, sbn.key)
+        val base = DataEventBase(channel, conversations, packageName, title, text, sbn.key, isHistorical)
 
         return if (conversationTitle != null || messagingPerson != null || people.isNotEmpty()) {
             ExtendedEvent(
