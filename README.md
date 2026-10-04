@@ -36,8 +36,10 @@ dependencies {
 import com.trodevel.simpleevent.ConverterNotificationToEvent
 
 override fun onNotificationPosted(sbn: StatusBarNotification) {
-    val event = ConverterNotificationToEvent.convert(sbn)
-    // event is either a SimpleEvent or ExtendedEvent (for messages)
+    val events = ConverterNotificationToEvent.convert(sbn)
+    for (event in events) {
+        // event is either a SimpleEvent or ExtendedEvent (for messages)
+    }
 }
 ```
 
