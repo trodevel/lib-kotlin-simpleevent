@@ -6,5 +6,6 @@ data class DataEventBase(
     val packageName: String,
     val title: String,
     val message: String,
-    val key: String
+    val key: String,
+    val isHistorical: Boolean = false
 )
